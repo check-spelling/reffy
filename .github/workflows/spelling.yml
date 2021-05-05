@@ -1,0 +1,36 @@
+name: Spell checking
+on:
+  pull_request_target:
+  push:
+  issue_comment:
+
+jobs:
+  build:
+    name: Spell checking
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout-merge
+      if: "contains(github.event_name, 'pull_request')"
+      uses: actions/checkout@v2.0.0
+      with:
+        ref: refs/pull/${{github.event.pull_request.number}}/merge
+    - name: checkout
+      if: "!contains(github.event_name, 'pull_request')"
+      uses: actions/checkout@v2.0.0
+    - name: check-spelling
+      id: spelling
+      uses: check-spelling/check-spelling@prerelease
+      with:
+        experimental_apply_changes_via_bot: 1
+        extra_dictionaries:
+          cspell:html/html.txt
+          cspell:css/css.txt
+          cspell:cpp/cpp.txt
+          cspell:node/node.txt
+          cspell:java/java.txt
+          cspell:npm/npm.txt
+          cspell:filetypes/filetypes.txt
+          cspell:en_GB/src/wordsEnGb.txt
+          cspell:django/django.txt
+          cspell:php/php.txt
+        check_extra_dictionaries: ''
