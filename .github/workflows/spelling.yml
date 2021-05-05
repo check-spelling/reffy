@@ -1,0 +1,50 @@
+name: Spell checking
+on:
+  pull_request_target:
+  push:
+  issue_comment:
+
+jobs:
+  build:
+    name: Spell checking
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout-merge
+      if: "contains(github.event_name, 'pull_request')"
+      uses: actions/checkout@v2.0.0
+      with:
+        ref: refs/pull/${{github.event.pull_request.number}}/merge
+    - name: checkout
+      if: "!contains(github.event_name, 'pull_request')"
+      uses: actions/checkout@v2.0.0
+    - name: check-spelling
+      id: spelling
+      uses: check-spelling/check-spelling@prerelease
+      with:
+        experimental_apply_changes_via_bot: 1
+        extra_dictionaries:
+          cspell:html/html.txt
+          cspell:css/css.txt
+          cspell:cpp/cpp.txt
+          cspell:node/node.txt
+          cspell:java/java.txt
+          cspell:npm/npm.txt
+          cspell:filetypes/filetypes.txt
+          cspell:en_GB/src/wordsEnGb.txt
+          cspell:django/django.txt
+          cspell:php/php.txt
+        capture_output_skipped_files: 1
+        capture_output_stale_words: 1
+        capture_output_suggested_dictionaries: 1
+        capture_output_unknown_words: 1
+        capture_output_warnings: 1
+    - name: debug
+      shell: bash
+      if: always()
+      run:
+        show() { if [ -e "$2" ]; then echo "$1:"; cat "$2"; fi; };
+        show skipped_files "${{ steps.spelling.outputs.skipped_files }}";
+        show stale_words "${{ steps.spelling.outputs.stale_words }}";
+        show suggested_dictionaries "${{ steps.spelling.outputs.suggested_dictionaries }}";
+        show unknown_words "${{ steps.spelling.outputs.unknown_words }}";
+        show warnings "${{ steps.spelling.outputs.warnings }}";
